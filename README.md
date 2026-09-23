@@ -1,24 +1,55 @@
-# Student Performance Predictor
+# 🎓 Student Performance Predictor
 
-A machine learning project that predicts student academic performance based on factors such as study hours, attendance, previous marks, sleep hours, and assignment completion.
+An AI-powered machine learning application that predicts a student's expected final score based on academic and lifestyle-related factors.
 
-## 🎯 Objective
+## 🚀 Live Project
 
-The goal of this project is to use machine learning to understand the factors that influence student academic performance and make predictions based on student data.
+This project uses a Random Forest Regression model and provides an interactive Streamlit dashboard for making predictions.
 
-## 🛠️ Technologies
+---
 
-- Python
-- Pandas
-- NumPy
-- Scikit-learn
-- Matplotlib
-- Machine Learning
+## 📌 Problem Statement
 
-## 🚀 Project Status
+Student academic performance can be influenced by multiple factors such as:
 
-Currently under development.
+- Study hours
+- Attendance
+- Previous academic performance
+- Assignment scores
+- Sleep hours
+- Extracurricular activities
 
-## 👩‍💻 Author
+The goal of this project is to build a machine learning model that estimates a student's expected final score using these factors.
 
-Harvansh Kaur Kapoor
+---
+
+## ✨ Features
+
+- 🎯 Student final score prediction
+- 📊 Interactive Streamlit dashboard
+- 📚 Study-hours analysis
+- 🏫 Attendance analysis
+- 📝 Previous score and assignment analysis
+- 😴 Sleep-hours input
+- 🏆 Extracurricular activity input
+- 📈 Model performance metrics
+- 🎯 Feature importance analysis
+- 💡 Personalized performance recommendation
+
+---
+
+## 🤖 Machine Learning Model
+
+The project uses:
+
+**Random Forest Regression**
+
+### Input Features
+
+```text
+study_hours
+attendance
+previous_score
+assignment_score
+sleep_hours
+extracurricular
