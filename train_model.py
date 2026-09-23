@@ -3,17 +3,17 @@ import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
-# 1. Load dataset
+# Load dataset
 data = pd.read_csv("data/student_data.csv")
 
 print("Dataset loaded successfully!")
-print("Number of students:", len(data))
+print("Dataset shape:", data.shape)
 
 
-# 2. Select features
+# Features and target
 features = [
     "study_hours",
     "attendance",
@@ -27,7 +27,7 @@ X = data[features]
 y = data["final_score"]
 
 
-# 3. Split data into training and testing sets
+# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -36,34 +36,60 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
-# 4. Create ML model
+# Create model
 model = RandomForestRegressor(
     n_estimators=100,
     random_state=42
 )
 
 
-# 5. Train model
+# Train
 model.fit(X_train, y_train)
 
 print("Model training completed!")
 
 
-# 6. Make predictions
+# Predictions
 predictions = model.predict(X_test)
 
 
-# 7. Evaluate model
+# Evaluation
 mae = mean_absolute_error(y_test, predictions)
+mse = mean_squared_error(y_test, predictions)
+rmse = mse ** 0.5
 r2 = r2_score(y_test, predictions)
 
-print("\nModel Performance")
-print("----------------------")
-print("Mean Absolute Error:", round(mae, 2))
-print("R2 Score:", round(r2, 2))
+
+print("\n==============================")
+print("MODEL EVALUATION")
+print("==============================")
+
+print("MAE :", round(mae, 2))
+print("RMSE:", round(rmse, 2))
+print("R2  :", round(r2, 2))
 
 
-# 8. Save trained model
-joblib.dump(model, "models/student_performance_model.pkl")
+# Feature importance
+importance = pd.DataFrame({
+    "Feature": features,
+    "Importance": model.feature_importances_
+})
+
+importance = importance.sort_values(
+    by="Importance",
+    ascending=False
+)
+
+print("\nFeature Importance:")
+print(importance)
+
+
+# Save model
+joblib.dump(
+    model,
+    "models/student_performance_model.pkl"
+)
 
 print("\nModel saved successfully!")
+print("Feature importance chart saved successfully!")
+print(importance)

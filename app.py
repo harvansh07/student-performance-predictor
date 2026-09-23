@@ -43,13 +43,6 @@ st.markdown("""
     color: #666;
 }
 
-.card {
-    padding: 20px;
-    border-radius: 15px;
-    border: 1px solid #ddd;
-    background-color: #ffffff;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -190,6 +183,7 @@ if st.button(
     if prediction >= 85:
 
         category = "🌟 Excellent"
+
         recommendation = (
             "Excellent performance! Maintain your current "
             "study habits and consistency."
@@ -198,6 +192,7 @@ if st.button(
     elif prediction >= 70:
 
         category = "🟢 Good"
+
         recommendation = (
             "Good performance. Increasing study consistency "
             "could help you reach an excellent score."
@@ -206,6 +201,7 @@ if st.button(
     elif prediction >= 50:
 
         category = "🟡 Average"
+
         recommendation = (
             "There is room for improvement. Focus on "
             "attendance, assignments and study hours."
@@ -214,6 +210,7 @@ if st.button(
     else:
 
         category = "🔴 Needs Improvement"
+
         recommendation = (
             "Consider increasing study hours and improving "
             "attendance and assignment performance."
@@ -312,7 +309,79 @@ if st.button(
 
 
 # --------------------------------------------------
-# About project
+# Model Performance
+# --------------------------------------------------
+
+st.divider()
+
+st.subheader("📈 Model Performance")
+
+metric1, metric2, metric3 = st.columns(3)
+
+with metric1:
+    st.metric(
+        "MAE",
+        "0.71"
+    )
+
+with metric2:
+    st.metric(
+        "RMSE",
+        "0.84"
+    )
+
+with metric3:
+    st.metric(
+        "R² Score",
+        "1.00"
+    )
+
+st.caption(
+    "These evaluation results are based on the current practice dataset "
+    "and should not be interpreted as real-world model accuracy."
+)
+
+
+# --------------------------------------------------
+# Feature Importance
+# --------------------------------------------------
+
+st.subheader("🎯 Feature Importance")
+
+features = [
+    "study_hours",
+    "attendance",
+    "previous_score",
+    "assignment_score",
+    "sleep_hours",
+    "extracurricular"
+]
+
+importance_data = pd.DataFrame({
+    "Feature": features,
+    "Importance": model.feature_importances_
+})
+
+importance_data = importance_data.sort_values(
+    by="Importance",
+    ascending=True
+)
+
+fig2, ax2 = plt.subplots(figsize=(8, 5))
+
+ax2.barh(
+    importance_data["Feature"],
+    importance_data["Importance"]
+)
+
+ax2.set_xlabel("Importance")
+ax2.set_title("Factors Influencing Model Predictions")
+
+st.pyplot(fig2)
+
+
+# --------------------------------------------------
+# About Project
 # --------------------------------------------------
 
 st.divider()
@@ -321,12 +390,21 @@ st.subheader("ℹ️ About This Project")
 
 st.write(
     """
-    Student Performance Predictor is a machine learning project
+    Student Performance Predictor is a machine learning application
     that estimates a student's expected final score using academic
     and lifestyle-related factors.
 
     The project uses a Random Forest Regression model trained on
     student performance data.
+    """
+)
+
+st.info(
+    """
+    📌 Dataset Note:
+    The current dataset is a small synthetic/practice dataset created
+    for educational purposes. A larger real-world dataset would be
+    required before using this system for reliable academic prediction.
     """
 )
 
