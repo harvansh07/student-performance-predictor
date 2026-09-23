@@ -4,7 +4,7 @@ import joblib
 
 
 # --------------------------------------------------
-# Page configuration
+# PAGE CONFIG
 # --------------------------------------------------
 
 st.set_page_config(
@@ -15,37 +15,33 @@ st.set_page_config(
 
 
 # --------------------------------------------------
-# Load model
+# LOAD MODEL & RESULTS
 # --------------------------------------------------
 
 model = joblib.load(
     "models/student_performance_model.pkl"
 )
 
-
-# --------------------------------------------------
-# Load model comparison results
-# --------------------------------------------------
-
-comparison_path = "models/model_comparison.csv"
-
-try:
-    model_results = pd.read_csv(comparison_path)
-except FileNotFoundError:
-    model_results = None
+model_results = pd.read_csv(
+    "models/model_comparison.csv"
+)
+feature_importance = pd.read_csv(
+    "models/feature_importance.csv"
+)
 
 
 # --------------------------------------------------
-# Header
+# HEADER
 # --------------------------------------------------
 
 st.title("🎓 Student Performance Predictor")
 
 st.markdown(
     """
-    ### AI/ML Dashboard
-    Predict a student's expected final score using academic,
-    attendance, study, and lifestyle factors.
+    Predict a student's **final mathematics grade (G3)** 
+    using academic, demographic, family and lifestyle factors.
+    
+    **Machine Learning Model:** Random Forest Regressor
     """
 )
 
@@ -53,305 +49,504 @@ st.divider()
 
 
 # --------------------------------------------------
-# Sidebar inputs
+# SIDEBAR
 # --------------------------------------------------
 
-st.sidebar.header("📋 Student Information")
+st.sidebar.header("👤 Student Information")
 
-study_hours = st.sidebar.slider(
-    "Study Hours per Day",
-    min_value=0.0,
-    max_value=12.0,
-    value=4.0,
-    step=0.5
+st.sidebar.subheader("Basic Information")
+
+school = st.sidebar.selectbox(
+    "School",
+    ["GP", "MS"]
 )
 
-attendance = st.sidebar.slider(
-    "Attendance (%)",
+sex = st.sidebar.selectbox(
+    "Sex",
+    ["F", "M"]
+)
+
+age = st.sidebar.slider(
+    "Age",
+    min_value=15,
+    max_value=22,
+    value=17
+)
+
+address = st.sidebar.selectbox(
+    "Address",
+    ["U", "R"]
+)
+
+famsize = st.sidebar.selectbox(
+    "Family Size",
+    ["GT3", "LE3"]
+)
+
+Pstatus = st.sidebar.selectbox(
+    "Parent Cohabitation Status",
+    ["A", "T"]
+)
+
+
+# --------------------------------------------------
+# EDUCATION
+# --------------------------------------------------
+
+st.sidebar.subheader("📚 Education")
+
+Medu = st.sidebar.slider(
+    "Mother's Education",
+    0,
+    4,
+    2
+)
+
+Fedu = st.sidebar.slider(
+    "Father's Education",
+    0,
+    4,
+    2
+)
+
+Mjob = st.sidebar.selectbox(
+    "Mother's Job",
+    ["teacher", "health", "services", "at_home", "other"]
+)
+
+Fjob = st.sidebar.selectbox(
+    "Father's Job",
+    ["teacher", "health", "services", "at_home", "other"]
+)
+
+reason = st.sidebar.selectbox(
+    "Reason for Choosing School",
+    ["home", "reputation", "course", "other"]
+)
+
+guardian = st.sidebar.selectbox(
+    "Guardian",
+    ["mother", "father", "other"]
+)
+
+
+# --------------------------------------------------
+# STUDY HABITS
+# --------------------------------------------------
+
+st.sidebar.subheader("📖 Study Habits")
+
+traveltime = st.sidebar.slider(
+    "Travel Time",
+    1,
+    4,
+    2
+)
+
+studytime = st.sidebar.slider(
+    "Weekly Study Time",
+    1,
+    4,
+    2
+)
+
+failures = st.sidebar.slider(
+    "Past Class Failures",
+    0,
+    4,
+    0
+)
+
+absences = st.sidebar.number_input(
+    "Number of Absences",
     min_value=0,
     max_value=100,
-    value=75
-)
-
-previous_score = st.sidebar.slider(
-    "Previous Score",
-    min_value=0,
-    max_value=100,
-    value=70
-)
-
-assignment_score = st.sidebar.slider(
-    "Assignment Score",
-    min_value=0,
-    max_value=100,
-    value=70
-)
-
-sleep_hours = st.sidebar.slider(
-    "Sleep Hours per Day",
-    min_value=0.0,
-    max_value=12.0,
-    value=7.0,
-    step=0.5
-)
-
-extracurricular = st.sidebar.selectbox(
-    "Extracurricular Activities",
-    [0, 1],
-    format_func=lambda x: "Yes" if x == 1 else "No"
+    value=5
 )
 
 
 # --------------------------------------------------
-# Student summary
+# SUPPORT & ACTIVITIES
 # --------------------------------------------------
 
-st.subheader("📌 Student Profile")
+st.sidebar.subheader("🏫 Support & Activities")
 
-col1, col2, col3, col4, col5, col6 = st.columns(6)
+schoolsup = st.sidebar.selectbox(
+    "School Support",
+    ["yes", "no"]
+)
 
-col1.metric("Study Hours", study_hours)
-col2.metric("Attendance", f"{attendance}%")
-col3.metric("Previous Score", previous_score)
-col4.metric("Assignment", assignment_score)
-col5.metric("Sleep", f"{sleep_hours} hrs")
-col6.metric(
-    "Activities",
-    "Yes" if extracurricular == 1 else "No"
+famsup = st.sidebar.selectbox(
+    "Family Support",
+    ["yes", "no"]
+)
+
+paid = st.sidebar.selectbox(
+    "Extra Paid Classes",
+    ["yes", "no"]
+)
+
+activities = st.sidebar.selectbox(
+    "Extra-curricular Activities",
+    ["yes", "no"]
+)
+
+nursery = st.sidebar.selectbox(
+    "Attended Nursery School",
+    ["yes", "no"]
+)
+
+higher = st.sidebar.selectbox(
+    "Wants Higher Education",
+    ["yes", "no"]
+)
+
+internet = st.sidebar.selectbox(
+    "Internet Access",
+    ["yes", "no"]
+)
+
+romantic = st.sidebar.selectbox(
+    "In a Romantic Relationship",
+    ["yes", "no"]
 )
 
 
 # --------------------------------------------------
-# Prediction
+# LIFESTYLE
 # --------------------------------------------------
+
+st.sidebar.subheader("🌱 Lifestyle")
+
+famrel = st.sidebar.slider(
+    "Family Relationship Quality",
+    1,
+    5,
+    4
+)
+
+freetime = st.sidebar.slider(
+    "Free Time",
+    1,
+    5,
+    3
+)
+
+goout = st.sidebar.slider(
+    "Going Out With Friends",
+    1,
+    5,
+    3
+)
+
+Dalc = st.sidebar.slider(
+    "Workday Alcohol Consumption",
+    1,
+    5,
+    1
+)
+
+Walc = st.sidebar.slider(
+    "Weekend Alcohol Consumption",
+    1,
+    5,
+    1
+)
+
+health = st.sidebar.slider(
+    "Current Health Status",
+    1,
+    5,
+    3
+)
+
+
+# --------------------------------------------------
+# CREATE INPUT DATAFRAME
+# --------------------------------------------------
+
+input_data = pd.DataFrame({
+    "school": [school],
+    "sex": [sex],
+    "age": [age],
+    "address": [address],
+    "famsize": [famsize],
+    "Pstatus": [Pstatus],
+    "Medu": [Medu],
+    "Fedu": [Fedu],
+    "Mjob": [Mjob],
+    "Fjob": [Fjob],
+    "reason": [reason],
+    "guardian": [guardian],
+    "traveltime": [traveltime],
+    "studytime": [studytime],
+    "failures": [failures],
+    "schoolsup": [schoolsup],
+    "famsup": [famsup],
+    "paid": [paid],
+    "activities": [activities],
+    "nursery": [nursery],
+    "higher": [higher],
+    "internet": [internet],
+    "romantic": [romantic],
+    "famrel": [famrel],
+    "freetime": [freetime],
+    "goout": [goout],
+    "Dalc": [Dalc],
+    "Walc": [Walc],
+    "health": [health],
+    "absences": [absences]
+})
+
+
+# --------------------------------------------------
+# MAIN DASHBOARD
+# --------------------------------------------------
+
+st.subheader("📊 Student Profile")
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.metric(
+        "Study Time",
+        f"{studytime}/4"
+    )
+
+with col2:
+    st.metric(
+        "Absences",
+        absences
+    )
+
+with col3:
+    st.metric(
+        "Past Failures",
+        failures
+    )
+
+with col4:
+    st.metric(
+        "Family Support",
+        famsup.upper()
+    )
+
 
 st.divider()
 
+
+# --------------------------------------------------
+# PREDICTION
+# --------------------------------------------------
+
+st.subheader("🔮 Final Grade Prediction")
+
 if st.button(
-    "🔮 Predict Final Score",
+    "🚀 Predict Student Performance",
     use_container_width=True
 ):
 
-    input_data = pd.DataFrame(
-        [[
-            study_hours,
-            attendance,
-            previous_score,
-            assignment_score,
-            sleep_hours,
-            extracurricular
-        ]],
-        columns=[
-            "study_hours",
-            "attendance",
-            "previous_score",
-            "assignment_score",
-            "sleep_hours",
-            "extracurricular"
-        ]
+    prediction = model.predict(
+        input_data
+    )[0]
+
+    prediction = max(
+        0,
+        min(20, prediction)
     )
 
-    prediction = model.predict(input_data)[0]
+    prediction = round(
+        prediction,
+        2
+    )
 
-    prediction = round(prediction, 2)
 
-
-    # --------------------------------------------------
     # Performance category
-    # --------------------------------------------------
 
-    if prediction >= 85:
+    if prediction >= 15:
         category = "Excellent 🌟"
-        recommendation = (
-            "Excellent performance! Keep maintaining "
-            "your study consistency."
-        )
-
-    elif prediction >= 70:
+    elif prediction >= 12:
         category = "Good 👍"
-        recommendation = (
-            "Good performance. Increasing study consistency "
-            "and attendance may help further."
-        )
-
-    elif prediction >= 50:
+    elif prediction >= 10:
         category = "Average 📚"
-        recommendation = (
-            "There is room for improvement. Focus on study "
-            "hours, assignments, and attendance."
-        )
-
     else:
         category = "Needs Improvement ⚠️"
-        recommendation = (
-            "Consider improving study habits, attendance, "
-            "assignments, and sleep routine."
+
+
+    # Results
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric(
+            "Predicted Final Grade",
+            f"{prediction}/20"
+        )
+
+    with col2:
+        st.metric(
+            "Performance Category",
+            category
         )
 
 
-    # --------------------------------------------------
-    # Prediction result
-    # --------------------------------------------------
+    # Progress bar
 
-    st.subheader("🎯 Prediction Result")
-
-    result_col1, result_col2 = st.columns(2)
-
-    result_col1.metric(
-        "Predicted Final Score",
-        f"{prediction}/100"
+    st.progress(
+        prediction / 20
     )
 
-    result_col2.metric(
-        "Performance Category",
-        category
-    )
-
-    st.info(recommendation)
-
-
-    # --------------------------------------------------
-    # Score comparison
-    # --------------------------------------------------
-
-    st.subheader("📊 Score Comparison")
-
-    score_data = pd.DataFrame(
-        {
-            "Score Type": [
-                "Previous Score",
-                "Assignment Score",
-                "Predicted Final Score"
-            ],
-            "Score": [
-                previous_score,
-                assignment_score,
-                prediction
-            ]
-        }
-    )
-
-    st.bar_chart(
-        score_data.set_index("Score Type")
-    )
-
-
-# --------------------------------------------------
-# Model comparison
-# --------------------------------------------------
-
-st.divider()
-
-st.header("🤖 Machine Learning Model Comparison")
-
-if model_results is not None:
-
-    st.dataframe(
-        model_results.round(2),
-        use_container_width=True,
-        hide_index=True
-    )
-
-    st.subheader("📈 RMSE Comparison")
-
-    chart_data = model_results.set_index("Model")[
-        ["RMSE"]
-    ]
-
-    st.bar_chart(chart_data)
-
-    best_model = model_results.loc[
-        model_results["RMSE"].idxmin(),
-        "Model"
-    ]
 
     st.success(
-        f"🏆 Selected Model: **{best_model}**"
-    )
-
-else:
-
-    st.warning(
-        "Model comparison results are not available."
+        f"Predicted final mathematics grade: **{prediction}/20**"
     )
 
 
-# --------------------------------------------------
-# Feature importance
-# --------------------------------------------------
+    # --------------------------------------------------
+    # VISUALIZATION
+    # --------------------------------------------------
 
-st.divider()
+    st.subheader("📈 Prediction Visualization")
 
-st.header("🧠 Feature Importance")
-
-feature_names = [
-    "Study Hours",
-    "Attendance",
-    "Previous Score",
-    "Assignment Score",
-    "Sleep Hours",
-    "Extracurricular"
-]
-
-if hasattr(model, "feature_importances_"):
-
-    importance = model.feature_importances_
-
-    importance_df = pd.DataFrame(
-        {
-            "Feature": feature_names,
-            "Importance": importance
-        }
-    ).sort_values(
-        "Importance",
-        ascending=False
-    )
+    chart_data = pd.DataFrame({
+        "Metric": [
+            "Predicted Grade",
+            "Maximum Grade"
+        ],
+        "Score": [
+            prediction,
+            20
+        ]
+    })
 
     st.bar_chart(
-        importance_df.set_index("Feature")
-    )
-
-    st.dataframe(
-        importance_df.round(3),
-        use_container_width=True,
-        hide_index=True
-    )
-
-else:
-
-    st.info(
-        "Feature importance visualization is not available "
-        "for the selected model."
+        chart_data.set_index("Metric")
     )
 
 
 # --------------------------------------------------
-# About
+# MODEL PERFORMANCE
 # --------------------------------------------------
 
 st.divider()
 
-st.header("ℹ️ About This Project")
+st.subheader("🤖 Model Performance")
 
-st.markdown(
-    """
-    This project demonstrates an end-to-end machine learning
-    workflow for predicting student academic performance.
+st.dataframe(
+    model_results.round(2),
+    use_container_width=True,
+    hide_index=True
+)
 
-    **Models compared:**
-    - Linear Regression
-    - Random Forest Regression
-    - Gradient Boosting Regression
 
-    **Selected model:**
-    Random Forest Regression based on the lowest RMSE.
+# --------------------------------------------------
+# MODEL COMPARISON CHART
+# --------------------------------------------------
 
-    **Dataset:**
-    A small synthetic/practice dataset containing 48 student
-    records.
+st.subheader("📊 Model Comparison")
 
-    ⚠️ **Important:** The dataset is intended for educational
-    and portfolio demonstration purposes. The predictions
-    should not be used for real academic decisions.
-    """
+chart_data = model_results.set_index(
+    "Model"
+)[["MAE", "RMSE"]]
+
+st.bar_chart(
+    chart_data
+)
+
+
+# --------------------------------------------------
+# PROJECT INFORMATION
+# --------------------------------------------------
+# --------------------------------------------------
+# FEATURE IMPORTANCE
+# --------------------------------------------------
+
+st.divider()
+
+st.subheader("🧠 What Influences the Prediction?")
+
+st.caption(
+    "Permutation importance shows how much model performance "
+    "changes when each feature is shuffled. Higher values indicate "
+    "greater importance to this model on the test data."
+)
+
+importance_chart = feature_importance.head(10).copy()
+
+importance_chart = importance_chart.sort_values(
+    "Importance",
+    ascending=True
+)
+
+st.bar_chart(
+    importance_chart.set_index("Feature")
+)
+
+st.dataframe(
+    feature_importance.head(10).round(4),
+    use_container_width=True,
+    hide_index=True
+)
+st.divider()
+
+st.subheader("🧠 About This Project")
+
+col1, col2 = st.columns(2)
+
+with col1:
+
+    st.markdown(
+        """
+        **Dataset**
+
+        UCI Student Performance Dataset
+
+        **Target**
+
+        Final Mathematics Grade (G3)
+
+        **Models Tested**
+
+        - Linear Regression
+        - Random Forest
+        - Gradient Boosting
+
+        **Selected Model**
+
+        Random Forest
+        """
+    )
+
+
+with col2:
+
+    st.markdown(
+        """
+        **Input Categories**
+
+        - Student demographics
+        - Education
+        - Study habits
+        - Family support
+        - School support
+        - Lifestyle
+        - Absences
+
+        **Important**
+
+        This project is an educational machine-learning
+        application. Predictions should not be treated
+        as guaranteed academic outcomes.
+        """
+    )
+
+
+# --------------------------------------------------
+# FOOTER
+# --------------------------------------------------
+
+st.divider()
+
+st.caption(
+    "Built with Python • Scikit-learn • Pandas • Streamlit"
 )
