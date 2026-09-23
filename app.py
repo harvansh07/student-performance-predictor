@@ -1,14 +1,6 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import matplotlib.pyplot as plt
-
-
-# --------------------------------------------------
-# Load trained model
-# --------------------------------------------------
-
-model = joblib.load("models/student_performance_model.pkl")
 
 
 # --------------------------------------------------
@@ -23,157 +15,145 @@ st.set_page_config(
 
 
 # --------------------------------------------------
-# Custom CSS
+# Load model
 # --------------------------------------------------
 
-st.markdown("""
-<style>
+model = joblib.load(
+    "models/student_performance_model.pkl"
+)
 
-.main {
-    padding-top: 1rem;
-}
 
-.title {
-    font-size: 42px;
-    font-weight: 700;
-}
+# --------------------------------------------------
+# Load model comparison results
+# --------------------------------------------------
 
-.subtitle {
-    font-size: 18px;
-    color: #666;
-}
+comparison_path = "models/model_comparison.csv"
 
-</style>
-""", unsafe_allow_html=True)
+try:
+    model_results = pd.read_csv(comparison_path)
+except FileNotFoundError:
+    model_results = None
 
 
 # --------------------------------------------------
 # Header
 # --------------------------------------------------
 
-st.markdown(
-    '<div class="title">🎓 Student Performance Predictor</div>',
-    unsafe_allow_html=True
-)
+st.title("🎓 Student Performance Predictor")
 
 st.markdown(
-    '<div class="subtitle">'
-    'AI-powered prediction of student academic performance'
-    '</div>',
-    unsafe_allow_html=True
+    """
+    ### AI/ML Dashboard
+    Predict a student's expected final score using academic,
+    attendance, study, and lifestyle factors.
+    """
 )
 
 st.divider()
 
 
 # --------------------------------------------------
-# Sidebar
+# Sidebar inputs
 # --------------------------------------------------
 
-st.sidebar.title("📊 Student Information")
+st.sidebar.header("📋 Student Information")
 
 study_hours = st.sidebar.slider(
-    "📚 Study Hours per Day",
-    0,
-    12,
-    4
+    "Study Hours per Day",
+    min_value=0.0,
+    max_value=12.0,
+    value=4.0,
+    step=0.5
 )
 
 attendance = st.sidebar.slider(
-    "🏫 Attendance (%)",
-    0,
-    100,
-    75
+    "Attendance (%)",
+    min_value=0,
+    max_value=100,
+    value=75
 )
 
 previous_score = st.sidebar.slider(
-    "📝 Previous Score",
-    0,
-    100,
-    65
+    "Previous Score",
+    min_value=0,
+    max_value=100,
+    value=70
 )
 
 assignment_score = st.sidebar.slider(
-    "📖 Assignment Score",
-    0,
-    100,
-    70
+    "Assignment Score",
+    min_value=0,
+    max_value=100,
+    value=70
 )
 
 sleep_hours = st.sidebar.slider(
-    "😴 Sleep Hours",
-    0,
-    12,
-    7
+    "Sleep Hours per Day",
+    min_value=0.0,
+    max_value=12.0,
+    value=7.0,
+    step=0.5
 )
 
 extracurricular = st.sidebar.selectbox(
-    "🏆 Extracurricular Activities",
-    ["No", "Yes"]
-)
-
-extracurricular_value = (
-    1 if extracurricular == "Yes" else 0
+    "Extracurricular Activities",
+    [0, 1],
+    format_func=lambda x: "Yes" if x == 1 else "No"
 )
 
 
 # --------------------------------------------------
-# Main dashboard
+# Student summary
 # --------------------------------------------------
 
-st.subheader("📋 Student Profile")
+st.subheader("📌 Student Profile")
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 
-with col1:
-    st.metric("Study Hours", f"{study_hours} hrs")
-
-with col2:
-    st.metric("Attendance", f"{attendance}%")
-
-with col3:
-    st.metric("Previous Score", f"{previous_score}/100")
-
-
-col4, col5, col6 = st.columns(3)
-
-with col4:
-    st.metric("Assignment Score", f"{assignment_score}/100")
-
-with col5:
-    st.metric("Sleep", f"{sleep_hours} hrs")
-
-with col6:
-    st.metric(
-        "Extracurricular",
-        "Yes" if extracurricular_value else "No"
-    )
-
-
-st.divider()
+col1.metric("Study Hours", study_hours)
+col2.metric("Attendance", f"{attendance}%")
+col3.metric("Previous Score", previous_score)
+col4.metric("Assignment", assignment_score)
+col5.metric("Sleep", f"{sleep_hours} hrs")
+col6.metric(
+    "Activities",
+    "Yes" if extracurricular == 1 else "No"
+)
 
 
 # --------------------------------------------------
 # Prediction
 # --------------------------------------------------
 
+st.divider()
+
 if st.button(
-    "🔮 Predict Student Performance",
+    "🔮 Predict Final Score",
     use_container_width=True
 ):
 
-    input_data = pd.DataFrame({
-        "study_hours": [study_hours],
-        "attendance": [attendance],
-        "previous_score": [previous_score],
-        "assignment_score": [assignment_score],
-        "sleep_hours": [sleep_hours],
-        "extracurricular": [extracurricular_value]
-    })
+    input_data = pd.DataFrame(
+        [[
+            study_hours,
+            attendance,
+            previous_score,
+            assignment_score,
+            sleep_hours,
+            extracurricular
+        ]],
+        columns=[
+            "study_hours",
+            "attendance",
+            "previous_score",
+            "assignment_score",
+            "sleep_hours",
+            "extracurricular"
+        ]
+    )
 
     prediction = model.predict(input_data)[0]
 
-    prediction = max(0, min(100, prediction))
+    prediction = round(prediction, 2)
 
 
     # --------------------------------------------------
@@ -181,233 +161,197 @@ if st.button(
     # --------------------------------------------------
 
     if prediction >= 85:
-
-        category = "🌟 Excellent"
-
+        category = "Excellent 🌟"
         recommendation = (
-            "Excellent performance! Maintain your current "
-            "study habits and consistency."
+            "Excellent performance! Keep maintaining "
+            "your study consistency."
         )
 
     elif prediction >= 70:
-
-        category = "🟢 Good"
-
+        category = "Good 👍"
         recommendation = (
             "Good performance. Increasing study consistency "
-            "could help you reach an excellent score."
+            "and attendance may help further."
         )
 
     elif prediction >= 50:
-
-        category = "🟡 Average"
-
+        category = "Average 📚"
         recommendation = (
-            "There is room for improvement. Focus on "
-            "attendance, assignments and study hours."
+            "There is room for improvement. Focus on study "
+            "hours, assignments, and attendance."
         )
 
     else:
-
-        category = "🔴 Needs Improvement"
-
+        category = "Needs Improvement ⚠️"
         recommendation = (
-            "Consider increasing study hours and improving "
-            "attendance and assignment performance."
+            "Consider improving study habits, attendance, "
+            "assignments, and sleep routine."
         )
 
 
     # --------------------------------------------------
-    # Result
+    # Prediction result
     # --------------------------------------------------
 
     st.subheader("🎯 Prediction Result")
 
-    result1, result2 = st.columns(2)
+    result_col1, result_col2 = st.columns(2)
 
-    with result1:
+    result_col1.metric(
+        "Predicted Final Score",
+        f"{prediction}/100"
+    )
 
-        st.metric(
-            "Predicted Final Score",
-            f"{prediction:.1f}/100"
-        )
+    result_col2.metric(
+        "Performance Category",
+        category
+    )
 
-    with result2:
-
-        st.metric(
-            "Performance Level",
-            category
-        )
+    st.info(recommendation)
 
 
-    st.info(
-        f"💡 **Personalized Recommendation:** "
-        f"{recommendation}"
+    # --------------------------------------------------
+    # Score comparison
+    # --------------------------------------------------
+
+    st.subheader("📊 Score Comparison")
+
+    score_data = pd.DataFrame(
+        {
+            "Score Type": [
+                "Previous Score",
+                "Assignment Score",
+                "Predicted Final Score"
+            ],
+            "Score": [
+                previous_score,
+                assignment_score,
+                prediction
+            ]
+        }
+    )
+
+    st.bar_chart(
+        score_data.set_index("Score Type")
     )
 
 
-    # --------------------------------------------------
-    # Performance chart
-    # --------------------------------------------------
+# --------------------------------------------------
+# Model comparison
+# --------------------------------------------------
 
-    st.subheader("📊 Performance Overview")
+st.divider()
 
-    labels = [
-        "Previous Score",
-        "Assignment Score",
-        "Predicted Score"
-    ]
+st.header("🤖 Machine Learning Model Comparison")
 
-    values = [
-        previous_score,
-        assignment_score,
-        prediction
-    ]
-
-    fig, ax = plt.subplots()
-
-    ax.bar(labels, values)
-
-    ax.set_ylim(0, 100)
-
-    ax.set_ylabel("Score")
-
-    ax.set_title("Academic Performance Comparison")
-
-    st.pyplot(fig)
-
-
-    # --------------------------------------------------
-    # Prediction details
-    # --------------------------------------------------
-
-    st.subheader("🧠 Prediction Factors")
-
-    factor_data = pd.DataFrame({
-        "Factor": [
-            "Study Hours",
-            "Attendance",
-            "Previous Score",
-            "Assignment Score",
-            "Sleep Hours"
-        ],
-
-        "Value": [
-            study_hours,
-            attendance,
-            previous_score,
-            assignment_score,
-            sleep_hours
-        ]
-    })
+if model_results is not None:
 
     st.dataframe(
-        factor_data,
+        model_results.round(2),
         use_container_width=True,
         hide_index=True
     )
 
+    st.subheader("📈 RMSE Comparison")
+
+    chart_data = model_results.set_index("Model")[
+        ["RMSE"]
+    ]
+
+    st.bar_chart(chart_data)
+
+    best_model = model_results.loc[
+        model_results["RMSE"].idxmin(),
+        "Model"
+    ]
+
+    st.success(
+        f"🏆 Selected Model: **{best_model}**"
+    )
+
+else:
+
+    st.warning(
+        "Model comparison results are not available."
+    )
+
 
 # --------------------------------------------------
-# Model Performance
+# Feature importance
 # --------------------------------------------------
 
 st.divider()
 
-st.subheader("📈 Model Performance")
+st.header("🧠 Feature Importance")
 
-metric1, metric2, metric3 = st.columns(3)
-
-with metric1:
-    st.metric(
-        "MAE",
-        "0.71"
-    )
-
-with metric2:
-    st.metric(
-        "RMSE",
-        "0.84"
-    )
-
-with metric3:
-    st.metric(
-        "R² Score",
-        "1.00"
-    )
-
-st.caption(
-    "These evaluation results are based on the current practice dataset "
-    "and should not be interpreted as real-world model accuracy."
-)
-
-
-# --------------------------------------------------
-# Feature Importance
-# --------------------------------------------------
-
-st.subheader("🎯 Feature Importance")
-
-features = [
-    "study_hours",
-    "attendance",
-    "previous_score",
-    "assignment_score",
-    "sleep_hours",
-    "extracurricular"
+feature_names = [
+    "Study Hours",
+    "Attendance",
+    "Previous Score",
+    "Assignment Score",
+    "Sleep Hours",
+    "Extracurricular"
 ]
 
-importance_data = pd.DataFrame({
-    "Feature": features,
-    "Importance": model.feature_importances_
-})
+if hasattr(model, "feature_importances_"):
 
-importance_data = importance_data.sort_values(
-    by="Importance",
-    ascending=True
-)
+    importance = model.feature_importances_
 
-fig2, ax2 = plt.subplots(figsize=(8, 5))
+    importance_df = pd.DataFrame(
+        {
+            "Feature": feature_names,
+            "Importance": importance
+        }
+    ).sort_values(
+        "Importance",
+        ascending=False
+    )
 
-ax2.barh(
-    importance_data["Feature"],
-    importance_data["Importance"]
-)
+    st.bar_chart(
+        importance_df.set_index("Feature")
+    )
 
-ax2.set_xlabel("Importance")
-ax2.set_title("Factors Influencing Model Predictions")
+    st.dataframe(
+        importance_df.round(3),
+        use_container_width=True,
+        hide_index=True
+    )
 
-st.pyplot(fig2)
+else:
+
+    st.info(
+        "Feature importance visualization is not available "
+        "for the selected model."
+    )
 
 
 # --------------------------------------------------
-# About Project
+# About
 # --------------------------------------------------
 
 st.divider()
 
-st.subheader("ℹ️ About This Project")
+st.header("ℹ️ About This Project")
 
-st.write(
+st.markdown(
     """
-    Student Performance Predictor is a machine learning application
-    that estimates a student's expected final score using academic
-    and lifestyle-related factors.
+    This project demonstrates an end-to-end machine learning
+    workflow for predicting student academic performance.
 
-    The project uses a Random Forest Regression model trained on
-    student performance data.
-    """
-)
+    **Models compared:**
+    - Linear Regression
+    - Random Forest Regression
+    - Gradient Boosting Regression
 
-st.info(
-    """
-    📌 Dataset Note:
-    The current dataset is a small synthetic/practice dataset created
-    for educational purposes. A larger real-world dataset would be
-    required before using this system for reliable academic prediction.
-    """
-)
+    **Selected model:**
+    Random Forest Regression based on the lowest RMSE.
 
-st.caption(
-    "Built with Python • Pandas • Scikit-learn • Streamlit • GitHub"
+    **Dataset:**
+    A small synthetic/practice dataset containing 48 student
+    records.
+
+    ⚠️ **Important:** The dataset is intended for educational
+    and portfolio demonstration purposes. The predictions
+    should not be used for real academic decisions.
+    """
 )
